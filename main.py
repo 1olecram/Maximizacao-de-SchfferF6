@@ -43,7 +43,6 @@ def rank_selection(population, num_selections):
     individuos_ordenados = [ind for ind, fitness in avaliados]
     
     # Realiza a seleção com as probabilidades baseadas nos pesos do ranking
-    # Nota: random.choices faz seleção COM reposição por padrão
     return random.choices(individuos_ordenados, weights=weights_rank, k=num_selections)
 
 def schafferF6(x, y):
@@ -58,13 +57,11 @@ def generate_pop(tamanho, min_val=-100.0, max_val=100.0):
 
 def arithmetic_crossover(parent1, parent2):
     """Aplica o crossover aritmético entre dois pais para gerar dois filhos."""
-    alpha = random.random()  # Peso aleatório entre 0.0 e 1.0
+    alpha = random.random()
     
-    # Filho 1: alpha * P1 + (1 - alpha) * P2
     c1_x = alpha * parent1[0] + (1 - alpha) * parent2[0]
     c1_y = alpha * parent1[1] + (1 - alpha) * parent2[1]
     
-    # Filho 2: (1 - alpha) * P1 + alpha * P2
     c2_x = (1 - alpha) * parent1[0] + alpha * parent2[0]
     c2_y = (1 - alpha) * parent1[1] + alpha * parent2[1]
     
@@ -77,16 +74,13 @@ def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1
     """
     mutated_x, mutated_y = individual[0], individual[1]
     
-    # Muta o gene x?
+    # Possivel mutacao dos genes dentro dos parametros do grafico
     if random.random() < mutation_rate:
         mutated_x += random.gauss(mu, sigma)
-        # Garante que o valor permaneça dentro dos limites do problema
-        mutated_x = max(min_val, min(mutated_x, max_val))
-        
-    # Muta o gene y?
+        mutated_x = max(min_val, min(mutated_x, max_val)) 
+   
     if random.random() < mutation_rate:
         mutated_y += random.gauss(mu, sigma)
-        # Garante que o valor permaneça dentro dos limites do problema
         mutated_y = max(min_val, min(mutated_y, max_val))
         
     return (mutated_x, mutated_y)
@@ -95,9 +89,9 @@ def main():
     # --- Hiperparâmetros do Algoritmo Genético ---
     min_val = -10.0
     max_val = 10.0
-    pop_size = 50  # Tamanho da população
+    pop_size = 50  
     mutation_rate = 0.1  # 10% de chance de mutação por gene
-    mutation_sigma = 0.5 # Desvio padrão (força) da mutação
+    mutation_sigma = 0.5 # Desvio padrão da mutação
     max_generations = 50 # Limite de segurança para evitar loops infinitos
     tolerance = 1e-4 # Fator de término: variação mínima aceitável da média (0.0001)
     
