@@ -41,7 +41,7 @@ Maximizar a função F6 de Schaffer testa se um algoritmo consegue explorar o es
     ```
 ## Como manipular
 **Algoritmo genético** 
-* Valores de precisam podem ser alterados para variar a convergência do algoritmo:
+* Valores de precisão podem ser alterados para variar a convergência do algoritmo:
 
 1. Altere `pop_size` para mudar o tamanho da população
 2. Altere `mutation_rate` para mudar a taxa de mutação
