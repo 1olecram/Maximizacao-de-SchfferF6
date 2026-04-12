@@ -102,7 +102,9 @@ def main():
     
     prev_best_fitness = -float('inf')
     historic_pop = []
-    historic_fitness = []
+    historic_min_fitness = []
+    historic_avg_fitness = []
+    historic_max_fitness = []
     stagnation_counter = 0
     max_stagnation = 30 # Para se o melhor não melhorar por 30 gerações sucessivas
 
@@ -113,11 +115,14 @@ def main():
         # Avalia a população atual
         fitnesses = [schafferF6(ind[0], ind[1]) for ind in pop]
         current_avg_fitness = sum(fitnesses) / pop_size
+        current_min_fitness = min(fitnesses)
         best_fitness = max(fitnesses)
 
         # Armazena a "Foto" da geração atual
         historic_pop.append(pop.copy())  
-        historic_fitness.append(best_fitness)
+        historic_min_fitness.append(current_min_fitness)
+        historic_avg_fitness.append(current_avg_fitness)
+        historic_max_fitness.append(best_fitness)
 
         print(f"Geração {geracao:03d} | Melhor Fitness: {best_fitness:.6f} | Média: {current_avg_fitness:.6f}")
         
@@ -169,7 +174,9 @@ def main():
     #Gráfico de Linha
 
     fig_linha, ax_linha = plt.subplots(figsize=(8, 4))
-    ax_linha.plot(historic_fitness, color='blue', linewidth=2)
+    ax_linha.plot(historic_max_fitness, color='green', linewidth=2, label='Máximo (Melhor)')
+    ax_linha.plot(historic_avg_fitness, color='blue', linewidth=2, label='Média da População')
+    ax_linha.plot(historic_min_fitness, color='red', linewidth=1.5, label='Mínimo (Pior)', alpha=0.6)
     
     ax_linha.set_title("Evolução do Melhor Fitness")
     ax_linha.set_xlabel("Geração")
@@ -189,7 +196,7 @@ def main():
         # Atualiza os pontos da população no gráfico
         current_pop = historic_pop[frame]
         scatter.set_offsets(current_pop)
-        ax.set_title(f"Geração {frame+1} | Melhor Fitness: {historic_fitness[frame]:.6f}")
+        ax.set_title(f"Geração {frame+1} | Melhor Fitness: {historic_max_fitness[frame]:.6f}")
         return scatter,
 
     ani = FuncAnimation(fig, update, frames=len(historic_pop), blit=True, repeat=False)
