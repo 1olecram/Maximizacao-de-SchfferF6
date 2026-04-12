@@ -108,7 +108,7 @@ def main():
         
         print(f"Geração {geracao:03d} | Melhor Fitness: {best_fitness:.6f} | Média: {current_avg_fitness:.6f}")
         
-        # Critério de Parada: Variação da aptidão média
+        # Critério de Parada: Variação de fitness médio
         if abs(current_avg_fitness - prev_avg_fitness) < tolerance:
             print(f"\nAlgoritmo convergiu na geração {geracao}!")
             print(f"A variação da média ({abs(current_avg_fitness - prev_avg_fitness):.8f}) atingiu o fator de término.")

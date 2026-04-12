@@ -1,4 +1,6 @@
-# Maximizacao-de-SchfferF6
+# Maximizacao de Schffer F6
+
+Maximizar a função F6 de Schaffer testa se um algoritmo consegue explorar o espaço de busca (diversidade) e, ao mesmo tempo, convergir para a melhor solução (intensidade), superando armadilhas locais.
 
 ## Bibliotecas do projeto
 * random
@@ -7,7 +9,7 @@
 
 ## Como executar
 
-**Ambiente virtual pyhon**  
+**Ambiente virtual python**  
 * No Windows:
     ```
     cd caminho\para\seu\projeto
@@ -37,3 +39,14 @@
     ```
     pip freeze > requirements.txt 
     ```
+## Como manipular
+**Algoritmo genético** 
+* Valores de precisam podem ser alterados para variar a convergência do algoritmo:
+
+1. Altere `pop_size` para mudar o tamanho da população
+2. Altere `mutation_rate` para mudar a taxa de mutação
+3. Altere `mutation_sigma` para mudar o desvio padrão da mutação
+4. Altere ` max_generations` para mudar o número máximo de gerações 
+5. Altere `tolerance` para mudar a variação mínima aceitável do fitness médio
+    
+**Parte gráfica** 
