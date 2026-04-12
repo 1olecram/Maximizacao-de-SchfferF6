@@ -5,25 +5,27 @@ matplotlib.use('TkAgg')  # Força o uso de uma interface interativa
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
 
-def graphic_definition():
+def graphic_definition(lim_min, lim_max):
     """Configuração do gráfico, seu sistema de coordenadas e cores para o fitness"""
-    x_space = np.linspace(-10, 10, 400)
-    y_space = np.linspace(-10, 10, 400)
+    #criando o ambiente cartesiano do gráfico
+    x_space = np.linspace(lim_min, lim_max, 400)
+    y_space = np.linspace(lim_min, lim_max, 400)
     X, Y = np.meshgrid(x_space, y_space)
     Z = schafferF6(X, Y)
-    fig, ax = plt.subplots(figsize=(8, 8))
+    
+    fig, ax = plt.subplots(figsize=(8, 8)) #criando a janela de visualizacao (8" x 8")
     contour = ax.contourf(X,Y,Z, levels=30,cmap='viridis')
-    ax.set_xlim(-10, 10)
-    ax.set_ylim(-10, 10)
+    
+    #Limites visuais
+    ax.set_xlim(lim_min, lim_max)
+    ax.set_ylim(lim_min, lim_max)
     ax.set_title("Otimização da função Schaffer’s f6")
     
-    # Prepara os pontos da população (vazio por enquanto)
-    scatter = ax.scatter([], [], color='red', s=15, edgecolor='black')
+    scatter = ax.scatter([], [], color='red', s=15, edgecolor='black') # Prepara os pontos da população (vazio por enquanto)
     
-    # Exibe a janela do gráfico na tela
-    plt.show()
+    plt.show() # Exibe a janela do gráfico na tela
     
-    return fig, ax, scatter
+    return fig, ax, scatter, contour
 
 
 def rank_selection(population, num_selections):
@@ -33,13 +35,16 @@ def rank_selection(population, num_selections):
     """
     avaliados = [(ind, schafferF6(ind[0], ind[1])) for ind in population]
     avaliados.sort(key=lambda x: x[1])
-    
-    individuos_ordenados = []
-    for ind, _ in avaliados:
-        individuos_ordenados.append(ind)
-    
+
     # Cria os pesos do ranking: 1 para o pior até N para o melhor
     weights_rank = list(range(1, len(population) + 1))
+    
+    individuos_ordenados = []
+    for i in range(len(avaliados)):
+        ind=(avaliados[i][0], weights_rank[i])
+        individuos_ordenados.append(ind)
+
+    return individuos_ordenados
     
     # Realiza a seleção com as probabilidades baseadas nos pesos do ranking
     return random.choices(individuos_ordenados, weights=weights_rank, k=num_selections)
