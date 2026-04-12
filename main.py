@@ -74,13 +74,18 @@ def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1
     """
     mutated_x, mutated_y = individual[0], individual[1]
     
+    # Adicionando uma "macro-mutação" com desvio padrão maior (10% das vezes)
+    # Isso permite escapar dos múltiplos ótimos locais da função Schaffer F6
+    # que estão separados por aproximadamente 3.14 (pi).
+    current_sigma = sigma * 10 if random.random() < 0.1 else sigma
+    
     # Possivel mutacao dos genes dentro dos parametros do grafico
     if random.random() < mutation_rate:
-        mutated_x += random.gauss(mu, sigma)
+        mutated_x += random.gauss(mu, current_sigma)
         mutated_x = max(min_val, min(mutated_x, max_val)) 
    
     if random.random() < mutation_rate:
-        mutated_y += random.gauss(mu, sigma)
+        mutated_y += random.gauss(mu, current_sigma)
         mutated_y = max(min_val, min(mutated_y, max_val))
         
     return (mutated_x, mutated_y)
@@ -89,11 +94,11 @@ def main():
     # --- Hiperparâmetros do Algoritmo Genético ---
     min_val = -10.0
     max_val = 10.0
-    pop_size = 50  
-    mutation_rate = 0.1  # 10% de chance de mutação por gene
+    pop_size = 150  # População maior para maior diversidade e evitar ótimos locais
+    mutation_rate = 0.2  # 20% de chance de mutação por gene
     mutation_sigma = 0.5 # Desvio padrão da mutação
-    max_generations = 50 # Limite de segurança para evitar loops infinitos
-    tolerance = 1e-4 # Fator de término: variação mínima aceitável da média (0.0001)
+    max_generations = 200 # Aumentado para dar tempo para explorar os ótimos locais
+    tolerance = 1e-6 # Fator de término mais rigoroso para não parar à toa
     
     # --- Geração Inicial ---
     pop = generate_pop(pop_size, min_val, max_val)
@@ -121,10 +126,14 @@ def main():
         
         next_generation = []
         
+        # --- Elitismo ---
+        best_ind = max(pop, key=lambda ind: schafferF6(ind[0], ind[1]))
+        next_generation.append(best_ind)
+        
         # --- Crossover ---
-        for i in range(0, pop_size, 2):
+        for i in range(0, pop_size - 1, 2):
             p1 = selected_parents[i]
-            if i + 1 < pop_size:
+            if i + 1 < pop_size - 1:
                 p2 = selected_parents[i+1]
                 child1, child2 = arithmetic_crossover(p1, p2)
                 next_generation.extend([child1, child2])
@@ -132,7 +141,9 @@ def main():
                 next_generation.append(p1)
                 
         # --- Mutação ---
-        next_generation = [gaussian_mutation(child, mutation_rate, min_val, max_val, sigma=mutation_sigma) for child in next_generation]
+        # Mutamos todos, EXCETO o indivíduo elite (índice 0)
+        mutated_children = [gaussian_mutation(child, mutation_rate, min_val, max_val, sigma=mutation_sigma) for child in next_generation[1:]]
+        next_generation = [next_generation[0]] + mutated_children
                 
         # A nova geração substitui a anterior para o próximo ciclo
         pop = next_generation
