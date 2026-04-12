@@ -39,14 +39,11 @@ def rank_selection(population, num_selections):
     # Cria os pesos do ranking: 1 para o pior até N para o melhor
     weights_rank = list(range(1, len(population) + 1))
     
-    individuos_ordenados = []
-    for i in range(len(avaliados)):
-        ind=(avaliados[i][0], weights_rank[i])
-        individuos_ordenados.append(ind)
-
-    return individuos_ordenados
+    # Extrai apenas as coordenadas ordenadas (remove o valor do fitness da tupla)
+    individuos_ordenados = [ind for ind, fitness in avaliados]
     
     # Realiza a seleção com as probabilidades baseadas nos pesos do ranking
+    # Nota: random.choices faz seleção COM reposição por padrão
     return random.choices(individuos_ordenados, weights=weights_rank, k=num_selections)
 
 def schafferF6(x, y):
@@ -59,15 +56,49 @@ def generate_pop(tamanho, min_val=-100.0, max_val=100.0):
     """Gera uma população de pares de números reais (x, y)."""
     return [(random.uniform(min_val, max_val), random.uniform(min_val, max_val)) for _ in range(tamanho)]
 
+def arithmetic_crossover(parent1, parent2):
+    """Aplica o crossover aritmético entre dois pais para gerar dois filhos."""
+    alpha = random.random()  # Peso aleatório entre 0.0 e 1.0
+    
+    # Filho 1: alpha * P1 + (1 - alpha) * P2
+    c1_x = alpha * parent1[0] + (1 - alpha) * parent2[0]
+    c1_y = alpha * parent1[1] + (1 - alpha) * parent2[1]
+    
+    # Filho 2: (1 - alpha) * P1 + alpha * P2
+    c2_x = (1 - alpha) * parent1[0] + alpha * parent2[0]
+    c2_y = (1 - alpha) * parent1[1] + alpha * parent2[1]
+    
+    return (c1_x, c1_y), (c2_x, c2_y)
+
 def main():
     # Gerando os indivíduos dentro do limite visível do gráfico cartesiano (-10 a 10)
-    pop = generate_pop(5, min_val=-10.0, max_val=10.0)
-    print(pop)
-    print([schafferF6(ind[0], ind[1]) for ind in pop])
-    print(rank_selection(pop,2))
+    min_val=-10.0
+    max_val=10.0
+    pop_size = 5
+    pop = generate_pop(pop_size, min_val, max_val)
+    
+    # Seleciona os pais para a próxima geração (com reposição)
+    selected_parents = rank_selection(pop, pop_size)
+    
+    next_generation = []
+    
+    # Itera sobre os pais selecionados de 2 em 2
+    for i in range(0, pop_size, 2):
+        p1 = selected_parents[i]
+        # Verifica se existe um par para fazer o crossover (em caso de pop_size ímpar)
+        if i + 1 < pop_size:
+            p2 = selected_parents[i+1]
+            child1, child2 = arithmetic_crossover(p1, p2)
+            next_generation.extend([child1, child2])
+        else:
+            # Se sobrou um indivíduo sem par, ele passa direto para a próxima geração
+            next_generation.append(p1)
+            
+    print("População anterior:", pop)
+    print("Nova geração:", next_generation)
     
     # Testando a visualização do gráfico
-    graphic_definition()
+    graphic_definition(min_val, max_val)
 
 
 # Parte de Visualização
