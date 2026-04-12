@@ -1,13 +1,35 @@
 import random
 import numpy as np
+import matplotlib
+matplotlib.use('TkAgg')  # Força o uso de uma interface interativa
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation, PillowWriter
+
+def graphic_definition():
+    """Configuração do gráfico, seu sistema de coordenadas e cores para o fitness"""
+    x_space = np.linspace(-10, 10, 400)
+    y_space = np.linspace(-10, 10, 400)
+    X, Y = np.meshgrid(x_space, y_space)
+    Z = schafferF6(X, Y)
+    fig, ax = plt.subplots(figsize=(8, 8))
+    contour = ax.contourf(X,Y,Z, levels=30,cmap='viridis')
+    ax.set_xlim(-10, 10)
+    ax.set_ylim(-10, 10)
+    ax.set_title("Otimização da função Schaffer’s f6")
+    
+    # Prepara os pontos da população (vazio por enquanto)
+    scatter = ax.scatter([], [], color='red', s=15, edgecolor='black')
+    
+    # Exibe a janela do gráfico na tela
+    plt.show()
+    
+    return fig, ax, scatter
 
 
 def rank_selection(population, num_selections):
     """
-    Seleciona indivíduos baseados em sua posição (ranking) de aptidão.
-    A probabilidade de seleção é proporcional ao rank, não à aptidão absoluta.
+    Seleciona indivíduos baseados em sua posição (ranking) de fitness.
+    A probabilidade de seleção é proporcional ao rank, não à fitness absoluta.
     """
     avaliados = [(ind, schafferF6(ind[0], ind[1])) for ind in population]
     avaliados.sort(key=lambda x: x[1])
@@ -38,6 +60,9 @@ def main():
     print(pop)
     print([schafferF6(ind[0], ind[1]) for ind in pop])
     print(rank_selection(pop,2))
+    
+    # Testando a visualização do gráfico
+    graphic_definition()
 
 
 # Parte de Visualização
@@ -53,19 +78,6 @@ def main():
 # plt.savefig('evolucao_fitness.png')
 # plt.close()
 
-#Configuração do gráfico para a animação
-
-x_space = np.linspace(-10, 10, 400)
-y_space = np.linspace(-10, 10, 400)
-X, Y = np.meshgrid(x_space, y_space)
-Z = schafferF6(X, Y)
-fig, ax = plt.subplots(figsize=(8, 8))
-contour = ax.contourf(X,Y,Z, levels=30,cmap='viridis')
-ax.set_xlim(-10, 10)
-ax.set_ylim(-10, 10)
-ax.set_title("Otimização da função Schaffer’s f6")
-
-scatter = ax.scatter([], [], color='red', s=15, edgecolor='black')
 
 #Função de atualização para a animação
 #Tem algumas variáveis não declaradas aqui, mas é porque elas vão vir da parte da execução
