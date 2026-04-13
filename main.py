@@ -48,19 +48,14 @@ def generate_pop(tamanho, min_val=-100.0, max_val=100.0):
     pop_array = np.random.uniform(min_val, max_val, size=(tamanho, 2))
     return [(float(row[0]), float(row[1])) for row in pop_array]
 
-def blx_alpha_crossover(parent1, parent2, alpha=0.5):
-    """Aplica o crossover BLX-alpha com um distanciamento mínimo para não colapsar."""
-    min_x = min(parent1[0], parent2[0])
-    max_x = max(parent1[0], parent2[0])
-    range_x = max((max_x - min_x), 0.05) # Impede o colapso do delta
-    c1_x = random.uniform(min_x - alpha * range_x, max_x + alpha * range_x)
-    c2_x = random.uniform(min_x - alpha * range_x, max_x + alpha * range_x)
+def arithmetic_crossover(parent1, parent2):
+    """Aplica a recombinação aritmética (média ponderada)."""
+    alpha = random.random()
+    c1_x = alpha * parent1[0] + (1 - alpha) * parent2[0]
+    c1_y = alpha * parent1[1] + (1 - alpha) * parent2[1]
     
-    min_y = min(parent1[1], parent2[1])
-    max_y = max(parent1[1], parent2[1])
-    range_y = max((max_y - min_y), 0.05)
-    c1_y = random.uniform(min_y - alpha * range_y, max_y + alpha * range_y)
-    c2_y = random.uniform(min_y - alpha * range_y, max_y + alpha * range_y)
+    c2_x = (1 - alpha) * parent1[0] + alpha * parent2[0]
+    c2_y = (1 - alpha) * parent1[1] + alpha * parent2[1]
     
     return (c1_x, c1_y), (c2_x, c2_y)
 
@@ -87,6 +82,13 @@ def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1
         
     return (mutated_x, mutated_y)
 
+def update(frame, historic_pop, scatter, ax, historic_max_fitness):
+    """Atualiza os pontos da população no gráfico"""
+    current_pop = historic_pop[frame]
+    scatter.set_offsets(current_pop)
+    ax.set_title(f"Geração {frame+1} | Melhor Fitness: {historic_max_fitness[frame]:.6f}")
+    return scatter,
+
 def main():
     # --- Hiperparâmetros do Algoritmo Genético ---
     min_val = -10.0
@@ -94,24 +96,21 @@ def main():
     pop_size = 150  # População maior para maior diversidade e evitar ótimos locais
     mutation_rate = 0.2  # 20% de chance de mutação por gene
     mutation_sigma_initial = 3.0 # Sigma inicial alto para exploração
-    mutation_sigma_final = 0.05 # Sigma final muito baixo para fine-tuning
+    mutation_sigma_final = 0.0001 # Sigma final muito mais baixo para permitir convergência exata (fine-tuning)
     max_generations = 100 # Aumentado para dar tempo para explorar os ótimos locais
     tolerance = 1e-6 # Fator de término mais rigoroso para não parar à toa
     
     # --- Geração Inicial ---
     pop = generate_pop(pop_size, min_val, max_val) 
     
-    prev_best_fitness = -float('inf')
     historic_pop = []
     historic_min_fitness = []
     historic_avg_fitness = []
     historic_max_fitness = []
-    stagnation_counter = 0
-    max_stagnation = 30 # Para se o melhor não melhorar por 30 gerações sucessivas
 
     for geracao in range(max_generations):
-        # Sigma decai linearmente ao longo das gerações
-        current_mutation_sigma = mutation_sigma_initial - (mutation_sigma_initial - mutation_sigma_final) * (geracao / max_generations)
+        # Sigma decai exponencialmente ao longo das gerações
+        current_mutation_sigma = mutation_sigma_initial * ((mutation_sigma_final / mutation_sigma_initial) ** (geracao / max_generations))
 
         # Avalia a população atual
         fitnesses = [schafferF6(ind[0], ind[1]) for ind in pop]
@@ -133,7 +132,7 @@ def main():
             break
         
         # --- Seleção ---
-        selected_parents = selected_parents = tournament_selection(pop, pop_size, tournament_size=3)
+        selected_parents = tournament_selection(pop, pop_size, tournament_size=3)
         
         next_generation = []
         
@@ -142,9 +141,9 @@ def main():
         
         # Faz uma micro-busca local no entorno do melhor indivíduo
         # Isso garante que ele suba o pico exato caso pouse perto (fine-tuning extremo)
-        for _ in range(3):
-            test_x = best_ind[0] + random.gauss(0, current_mutation_sigma * 0.5)
-            test_y = best_ind[1] + random.gauss(0, current_mutation_sigma * 0.5)
+        for _ in range(20):
+            test_x = best_ind[0] + random.gauss(0, current_mutation_sigma)
+            test_y = best_ind[1] + random.gauss(0, current_mutation_sigma)
             test_x = max(min_val, min(test_x, max_val))
             test_y = max(min_val, min(test_y, max_val))
             best_fitness_val = schafferF6(best_ind[0], best_ind[1])
@@ -157,12 +156,13 @@ def main():
         # --- Crossover ---
         for i in range(0, pop_size - 1, 2):
             p1 = selected_parents[i]
-            if i + 1 < pop_size - 1:
-                p2 = selected_parents[i+1]
-                child1, child2 = blx_alpha_crossover(p1, p2, alpha=0.5)
-                next_generation.extend([child1, child2])
-            else:
-                next_generation.append(p1)
+            p2 = selected_parents[i+1]
+            child1, child2 = arithmetic_crossover(p1, p2)
+            
+            if len(next_generation) < pop_size:
+                next_generation.append(child1)
+            if len(next_generation) < pop_size:
+                next_generation.append(child2)
                 
         # --- Mutação ---
         # Mutamos todos, EXCETO o indivíduo elite (índice 0)
@@ -196,14 +196,7 @@ def main():
     
     fig, ax , scatter, contour = graphic_definition(min_val, max_val)
 
-    def update(frame):
-        # Atualiza os pontos da população no gráfico
-        current_pop = historic_pop[frame]
-        scatter.set_offsets(current_pop)
-        ax.set_title(f"Geração {frame+1} | Melhor Fitness: {historic_max_fitness[frame]:.6f}")
-        return scatter,
-
-    ani = FuncAnimation(fig, update, frames=len(historic_pop), blit=True, repeat=False)
+    ani = FuncAnimation(fig, update, frames=len(historic_pop), fargs=(historic_pop, scatter, ax, historic_max_fitness), blit=True, repeat=False)
     ani.save("schaffer_f6_optimization.gif", writer=PillowWriter(fps=5))
     
 
