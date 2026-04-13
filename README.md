@@ -59,3 +59,8 @@ Maximizar a função F6 de Schaffer testa se um algoritmo consegue explorar o es
 4. Altere a variável `s` (size) dentro de `ax.scatter` para deixar as bolinhas que representam os indivíduos maiores ou menores na tela
 5. Altere `interval` dentro de `FuncAnimation` para mudar a velocidade em que a animação roda na janela do programa
 6. Altere `fps` dentro de `PillowWriter` para deixar o arquivo de GIF exportado mais rápido ou mais lento
+
+## Resultados atuais
+
+![This is a sample image.](/grafico_fitness_schaffer.png "This is a sample image.")
+![This is a sample image.](/schaffer_f6_optimization.gif "This is a sample image.")
