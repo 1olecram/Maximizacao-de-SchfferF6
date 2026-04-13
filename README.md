@@ -1,4 +1,4 @@
-# Maximizacao de Schffer F6
+# Maximizacao de Schaffer F6
 
 Maximizar a função F6 de Schaffer testa se um algoritmo consegue explorar o espaço de busca (diversidade) e, ao mesmo tempo, convergir para a melhor solução (intensidade), superando armadilhas locais.
 
