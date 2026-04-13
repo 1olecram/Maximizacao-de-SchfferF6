@@ -45,7 +45,8 @@ def schafferF6(x, y):
 
 def generate_pop(tamanho, min_val=-100.0, max_val=100.0):
     """Gera uma população de pares de números reais (x, y)."""
-    return [(random.uniform(min_val, max_val), random.uniform(min_val, max_val)) for _ in range(tamanho)]
+    pop_array = np.random.uniform(min_val, max_val, size=(tamanho, 2))
+    return [(float(row[0]), float(row[1])) for row in pop_array]
 
 def blx_alpha_crossover(parent1, parent2, alpha=0.5):
     """Aplica o crossover BLX-alpha com um distanciamento mínimo para não colapsar."""
@@ -71,14 +72,14 @@ def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1
     mutated_x, mutated_y = individual[0], individual[1]
     
     if random.random() < mutation_rate:
-        if random.random() < 0.15:
+        if random.random() < 0.01:
             mutated_x = random.uniform(min_val, max_val)
         else:
             mutated_x += random.gauss(mu, sigma)
             mutated_x = max(min_val, min(mutated_x, max_val)) 
    
     if random.random() < mutation_rate:
-        if random.random() < 0.15:
+        if random.random() < 0.01:
             mutated_y = random.uniform(min_val, max_val)
         else:
             mutated_y += random.gauss(mu, sigma)
@@ -90,15 +91,15 @@ def main():
     # --- Hiperparâmetros do Algoritmo Genético ---
     min_val = -10.0
     max_val = 10.0
-    pop_size = 300  # População maior para maior diversidade e evitar ótimos locais
+    pop_size = 150  # População maior para maior diversidade e evitar ótimos locais
     mutation_rate = 0.2  # 20% de chance de mutação por gene
-    mutation_sigma_initial = 1.0 # Sigma inicial alto para exploração
-    mutation_sigma_final = 0.001 # Sigma final muito baixo para fine-tuning
-    max_generations = 300 # Aumentado para dar tempo para explorar os ótimos locais
+    mutation_sigma_initial = 3.0 # Sigma inicial alto para exploração
+    mutation_sigma_final = 0.05 # Sigma final muito baixo para fine-tuning
+    max_generations = 100 # Aumentado para dar tempo para explorar os ótimos locais
     tolerance = 1e-6 # Fator de término mais rigoroso para não parar à toa
     
     # --- Geração Inicial ---
-    pop = generate_pop(pop_size, min_val, max_val)
+    pop = generate_pop(pop_size, min_val, max_val) 
     
     prev_best_fitness = -float('inf')
     historic_pop = []
@@ -132,7 +133,7 @@ def main():
             break
         
         # --- Seleção ---
-        selected_parents = tournament_selection(pop, pop_size, tournament_size=3)
+        selected_parents = selected_parents = tournament_selection(pop, pop_size, tournament_size=3)
         
         next_generation = []
         
@@ -141,9 +142,11 @@ def main():
         
         # Faz uma micro-busca local no entorno do melhor indivíduo
         # Isso garante que ele suba o pico exato caso pouse perto (fine-tuning extremo)
-        for _ in range(10):
+        for _ in range(3):
             test_x = best_ind[0] + random.gauss(0, current_mutation_sigma * 0.5)
             test_y = best_ind[1] + random.gauss(0, current_mutation_sigma * 0.5)
+            test_x = max(min_val, min(test_x, max_val))
+            test_y = max(min_val, min(test_y, max_val))
             best_fitness_val = schafferF6(best_ind[0], best_ind[1])
             test_fitness_val = schafferF6(test_x, test_y)
             if test_fitness_val > best_fitness_val:
@@ -177,6 +180,7 @@ def main():
     ax_linha.plot(historic_max_fitness, color='green', linewidth=2, label='Máximo (Melhor)')
     ax_linha.plot(historic_avg_fitness, color='blue', linewidth=2, label='Média da População')
     ax_linha.plot(historic_min_fitness, color='red', linewidth=1.5, label='Mínimo (Pior)', alpha=0.6)
+    ax_linha.legend(loc='best')
     
     ax_linha.set_title("Evolução do Melhor Fitness")
     ax_linha.set_xlabel("Geração")
