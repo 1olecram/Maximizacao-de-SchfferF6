@@ -59,7 +59,7 @@ def arithmetic_crossover(parent1, parent2):
     
     return (c1_x, c1_y), (c2_x, c2_y)
 
-def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1.0):
+def gaussian_mutation(individual, mutation_rate, min_val, max_val, arit_mu=0, sigma=1.0):
     """
     Aplica mutação gaussiana a um indivíduo com probabilidade mutation_rate.
     Também inclui mutação uniforme (com 10% de chance dentro da mutação) para varrer todo o espaço.
@@ -67,18 +67,12 @@ def gaussian_mutation(individual, mutation_rate, min_val, max_val, mu=0, sigma=1
     mutated_x, mutated_y = individual[0], individual[1]
     
     if random.random() < mutation_rate:
-        if random.random() < 0.01:
-            mutated_x = random.uniform(min_val, max_val)
-        else:
-            mutated_x += random.gauss(mu, sigma)
-            mutated_x = max(min_val, min(mutated_x, max_val)) 
+        mutated_x += random.gauss(arit_mu, sigma)
+        mutated_x = max(min_val, min(mutated_x, max_val)) 
    
     if random.random() < mutation_rate:
-        if random.random() < 0.01:
-            mutated_y = random.uniform(min_val, max_val)
-        else:
-            mutated_y += random.gauss(mu, sigma)
-            mutated_y = max(min_val, min(mutated_y, max_val))
+        mutated_y += random.gauss(arit_mu, sigma)
+        mutated_y = max(min_val, min(mutated_y, max_val))
         
     return (mutated_x, mutated_y)
 
@@ -94,7 +88,7 @@ def main():
     min_val = -10.0
     max_val = 10.0
     pop_size = 150  # População maior para maior diversidade e evitar ótimos locais
-    mutation_rate = 0.2  # 20% de chance de mutação por gene
+    mutation_rate = 0.02  # chance de mutação por gene
     mutation_sigma_initial = 3.0 # Sigma inicial alto para exploração
     mutation_sigma_final = 0.0001 # Sigma final muito mais baixo para permitir convergência exata (fine-tuning)
     max_generations = 100 # Aumentado para dar tempo para explorar os ótimos locais
@@ -138,19 +132,6 @@ def main():
         
         # --- Elitismo e Busca Local (Algoritmo Memético) ---
         best_ind = max(pop, key=lambda ind: schafferF6(ind[0], ind[1]))
-        
-        # Faz uma micro-busca local no entorno do melhor indivíduo
-        # Isso garante que ele suba o pico exato caso pouse perto (fine-tuning extremo)
-        for _ in range(20):
-            test_x = best_ind[0] + random.gauss(0, current_mutation_sigma)
-            test_y = best_ind[1] + random.gauss(0, current_mutation_sigma)
-            test_x = max(min_val, min(test_x, max_val))
-            test_y = max(min_val, min(test_y, max_val))
-            best_fitness_val = schafferF6(best_ind[0], best_ind[1])
-            test_fitness_val = schafferF6(test_x, test_y)
-            if test_fitness_val > best_fitness_val:
-                best_ind = (test_x, test_y)
-                
         next_generation.append(best_ind)
         
         # --- Crossover ---
